@@ -1,0 +1,43 @@
+# Richtet die Datenbank automatisch ein (Tabellen, Regeln, Datenübernahme).
+# Läuft bei jedem Push auf main, der den Ordner supabase/ betrifft, und manuell über "Run workflow".
+name: Supabase deploy
+
+on:
+  push:
+    branches: [main]
+    paths: ["supabase/**", ".github/workflows/supabase.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: supabase-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      SB_CLI: supabase@2.122.1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prüfen, ob alle Secrets gesetzt sind
+        run: |
+          missing=""
+          for v in SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD PROJECT_REF; do
+            if [ -z "${!v}" ]; then missing="$missing $v"; fi
+          done
+          if [ -n "$missing" ]; then echo "::error::Fehlende GitHub-Secrets:$missing (siehe ANLEITUNG.md)"; exit 1; fi
+
+      # Feste CLI-Version (wie bei SwissScore)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Mit Supabase-Projekt verbinden
+        run: npx --yes "$SB_CLI" link --project-ref "$PROJECT_REF" --password "$SUPABASE_DB_PASSWORD"
+
+      - name: Datenbank-Migrationen anwenden
+        run: npx --yes "$SB_CLI" db push --linked --password "$SUPABASE_DB_PASSWORD" --yes

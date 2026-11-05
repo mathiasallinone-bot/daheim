@@ -1,0 +1,204 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "Nunito", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fredoka", "Nunito", sans-serif;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-star: var(--star);
+  --color-star-soft: var(--star-soft);
+  --color-done: var(--done);
+  --color-done-soft: var(--done-soft);
+  --color-holiday: var(--holiday);
+  --color-holiday-soft: var(--holiday-soft);
+  --color-swim: var(--swim);
+  --color-swim-soft: var(--swim-soft);
+  --color-warn-soft: var(--warn-soft);
+}
+
+:root {
+  --radius: 1.25rem;
+  --background: oklch(0.975 0.02 350);
+  --foreground: oklch(0.32 0.06 320);
+  --card: oklch(0.995 0.008 350);
+  --card-foreground: oklch(0.32 0.06 320);
+  --popover: oklch(0.995 0.008 350);
+  --popover-foreground: oklch(0.32 0.06 320);
+  --primary: oklch(0.57 0.19 355);
+  --primary-foreground: oklch(0.99 0.01 350);
+  --secondary: oklch(0.93 0.05 305);
+  --secondary-foreground: oklch(0.38 0.1 305);
+  --muted: oklch(0.95 0.025 340);
+  --muted-foreground: oklch(0.52 0.05 320);
+  --accent: oklch(0.86 0.1 50);
+  --accent-foreground: oklch(0.42 0.12 40);
+  --destructive: oklch(0.57 0.2 22);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.9 0.04 340);
+  --input: oklch(0.9 0.04 340);
+  --ring: oklch(0.57 0.19 355);
+  --star: oklch(0.78 0.16 80);
+  --star-soft: oklch(0.96 0.06 90);
+  --done: oklch(0.49 0.14 165);
+  --done-soft: oklch(0.94 0.06 165);
+  --holiday: oklch(0.55 0.15 25);
+  --holiday-soft: oklch(0.94 0.05 30);
+  --swim: oklch(0.49 0.12 230);
+  --swim-soft: oklch(0.93 0.05 220);
+  --warn-soft: oklch(0.95 0.07 80);
+  --shadow-card: 0 2px 0 oklch(0.85 0.06 340 / 60%), 0 10px 28px -12px oklch(0.55 0.15 340 / 30%);
+}
+
+@utility shadow-card {
+  box-shadow: var(--shadow-card);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    background-image:
+      radial-gradient(circle at 8% 12%, oklch(0.92 0.06 305 / 70%) 0 6rem, transparent 6.1rem),
+      radial-gradient(circle at 95% 30%, oklch(0.93 0.06 90 / 70%) 0 8rem, transparent 8.1rem),
+      radial-gradient(circle at 15% 85%, oklch(0.93 0.06 165 / 60%) 0 7rem, transparent 7.1rem),
+      radial-gradient(oklch(0.62 0.19 355 / 10%) 1.5px, transparent 1.5px);
+    background-size: auto, auto, auto, 22px 22px;
+    background-attachment: fixed;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    letter-spacing: 0;
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+  button {
+    touch-action: manipulation;
+  }
+}
+
+/* --- Kätzchen-Bühne --- */
+.kitten-body {
+  --lx: 0; --ly: 0; --purr: 0;
+  position: relative;
+  transform: perspective(900px)
+             translate3d(calc(var(--lx) * 48px), calc(var(--ly) * 24px), 0)
+             rotateY(calc(var(--lx) * 17deg))
+             rotateX(calc(var(--ly) * -10deg))
+             rotate(calc(var(--lx) * 3deg))
+             scale(calc(1 + var(--purr) * 0.05), calc(1 - var(--purr) * 0.04));
+  transform-origin: 50% 92%;
+}
+.kitten-fig { position: relative; z-index: 1; }
+.kitten-shadow {
+  position: absolute; left: 50%; bottom: -2%;
+  width: 62%; height: 6%; translate: -50% 0;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, color-mix(in oklab, var(--color-foreground) 22%, transparent), transparent 72%);
+  transform: translateX(calc(var(--lx) * -14px)) scale(calc(1 - var(--purr) * 0.06));
+}
+@keyframes kitten-breathe {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  50% { transform: translateY(-1.4%) scale(1.015, 0.988); }
+}
+.kitten-breathe { animation: kitten-breathe 3.2s ease-in-out infinite; transform-origin: 50% 95%; }
+@keyframes kitten-talk {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  20% { transform: translateY(-1.6%) rotate(-1.4deg); }
+  50% { transform: translateY(0.4%) rotate(0.8deg); }
+  75% { transform: translateY(-1.1%) rotate(1.4deg); }
+}
+.kitten-talk { animation: kitten-talk 0.7s ease-in-out infinite; transform-origin: 50% 95%; }
+@keyframes kitten-hop {
+  0% { transform: translateY(0) scale(1, 1); }
+  25% { transform: translateY(-14%) scale(0.95, 1.07); }
+  55% { transform: translateY(0) scale(1.06, 0.93); }
+  75% { transform: translateY(-6%) scale(0.99, 1.02); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+.kitten-hop { animation: kitten-hop 0.7s cubic-bezier(0.3, 0.7, 0.4, 1); transform-origin: 50% 95%; }
+.kitten-purr {
+  position: absolute; left: 50%; top: 58%; translate: -50% 0; z-index: 2;
+  font-family: var(--font-display); font-size: 1.15rem; font-weight: 600;
+  color: var(--color-primary);
+  background: var(--color-card);
+  border: 1px solid color-mix(in oklab, var(--color-star) 55%, transparent);
+  padding: 0.35rem 1rem; border-radius: 999px;
+  box-shadow: var(--shadow-card);
+  opacity: 0; scale: 0.8;
+  transition: opacity 0.3s ease, scale 0.3s ease;
+  white-space: nowrap;
+}
+.kitten-purr.is-on { opacity: 1; scale: 1; }
+@keyframes kitten-bubble-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.94); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.kitten-bubble { animation: kitten-bubble-in 0.4s ease-out; }
+@keyframes paw-in {
+  from { opacity: 0; transform: translateY(22px) scale(0.92); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.paw-in { animation: paw-in 0.45s ease-out both; }
+@keyframes kitten-spark-float {
+  0% { opacity: 0; transform: translate(0, 0) scale(0.4) rotate(0deg); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx, 0px), -120px) scale(1.15) rotate(var(--rot, 0deg)); }
+}
+.kitten-spark {
+  position: absolute; line-height: 1;
+  translate: -50% -50%;
+  animation: kitten-spark-float 1.25s ease-out forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .kitten-breathe, .kitten-talk, .kitten-hop, .kitten-bubble, .paw-in, .kitten-spark { animation: none; }
+}
+
+/* Einheitlicher, gut sichtbarer Fokusrahmen für Tastatur-Bedienung */
+:where(button, a, [role="button"], input, select, textarea, video):focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
