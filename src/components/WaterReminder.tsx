@@ -28,6 +28,12 @@ export function dueWaterSlot(day: string, hour: number, answered: Set<number>): 
 }
 
 const SNOOZE_KEY = "daheim-water-snooze";
+const WATER_DEMO_EVENT = "daheim-water-demo";
+
+/** Zeigt das Wasser-Kätzchen sofort (Vorschau, ohne zu speichern). */
+export function showWaterDemo() {
+  window.dispatchEvent(new Event(WATER_DEMO_EVENT));
+}
 const SNOOZE_MIN = 10;
 
 function snoozedUntil(key: string): number {
@@ -70,6 +76,18 @@ export function WaterReminderHost() {
   const checks = useWaterChecks(fam.id, today);
   const answer = useAnswerWater(fam.id);
   const audio = useRef<HTMLAudioElement | null>(null);
+  // Vorschau: Knopf «Kätzchen zeigen» oder Antippen der Test-Benachrichtigung (?wasser=0)
+  const [demo, setDemo] = useState(false);
+  useEffect(() => {
+    const show = () => setDemo(true);
+    window.addEventListener(WATER_DEMO_EVENT, show);
+    try {
+      if (new URLSearchParams(window.location.search).get("wasser") === "0") show();
+    } catch {
+      /* optional */
+    }
+    return () => window.removeEventListener(WATER_DEMO_EVENT, show);
+  }, []);
 
   useEffect(() => {
     const t = setInterval(() => setTick((n) => n + 1), 30_000);
@@ -83,9 +101,12 @@ export function WaterReminderHost() {
 
   const { hour } = zurichClock();
   const answered = new Set((checks.data ?? []).map((c) => c.hour));
-  const slot = on && checks.isSuccess ? dueWaterSlot(today, hour, answered) : null;
+  const real = on && checks.isSuccess ? dueWaterSlot(today, hour, answered) : null;
+  const realVisible = !!real && snoozedUntil(`${today}-${real.hour}`) <= Date.now();
+  const slot: WaterSlot | null = realVisible ? real : demo ? { hour: -1, kind: "trinken" } : null;
+  const isDemo = !realVisible && demo;
   const key = slot ? `${today}-${slot.hour}` : "";
-  const visible = !!slot && snoozedUntil(key) <= Date.now();
+  const visible = !!slot;
   void tick;
 
   useEffect(() => {
@@ -104,6 +125,16 @@ export function WaterReminderHost() {
   const text = WATER_TEXT[slot.kind];
   const close = () => {
     audio.current?.pause();
+    if (isDemo) {
+      setDemo(false);
+      try {
+        const u = new URL(window.location.href);
+        u.searchParams.delete("wasser");
+        window.history.replaceState(window.history.state, "", u.pathname + u.search + u.hash);
+      } catch {
+        /* optional */
+      }
+    }
     setTick((n) => n + 1);
   };
 
@@ -120,12 +151,14 @@ export function WaterReminderHost() {
       </p>
       <div className="flex w-full max-w-md flex-col gap-3">
         <Button size="lg" className="h-16 rounded-2xl bg-swim text-xl text-white hover:bg-swim/90" disabled={answer.isPending}
-          onClick={() => answer.mutate({ day: today, hour: slot.hour, kind: slot.kind }, {
-            onSuccess: () => { close(); toast.success(slot.kind === "flasche" ? "Super, Flasche ist bereit! 💧" : "Prima getrunken! 💧"); },
-          })}>
+          onClick={() => isDemo
+            ? (close(), toast.success("So sieht die Erinnerung aus – Prima getrunken! 💧"))
+            : answer.mutate({ day: today, hour: slot.hour, kind: slot.kind }, {
+                onSuccess: () => { close(); toast.success(slot.kind === "flasche" ? "Super, Flasche ist bereit! 💧" : "Prima getrunken! 💧"); },
+              })}>
           {text.yes}
         </Button>
-        <Button size="lg" variant="secondary" className="h-14 rounded-2xl text-lg" onClick={() => { snooze(key); close(); }}>
+        <Button size="lg" variant="secondary" className="h-14 rounded-2xl text-lg" onClick={() => { if (!isDemo) snooze(key); close(); }}>
           ⏰ Gleich ({SNOOZE_MIN} Min.)
         </Button>
       </div>
@@ -228,6 +261,9 @@ export function WaterCard({ day }: { day: string }) {
             Test senden
           </Button>
         )}
+        <Button size="sm" variant="ghost" className="h-11 rounded-xl" onClick={showWaterDemo}>
+          🐱 Kätzchen zeigen
+        </Button>
       </div>
       {!on && (pushSupported() || needsHomeScreen()) && (
         <p className="text-xs text-muted-foreground">
