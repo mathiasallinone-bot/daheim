@@ -10,7 +10,7 @@ Privat, nur für die Familie (`noindex`).
 - **Vite + React 19 + TanStack Router** (dateibasierte Routen in `src/routes`), Tailwind CSS 4, React Query
 - **Supabase**: Login, Postgres mit Row Level Security (jede Familie sieht nur ihre Daten); Sterne, Wochenbonus, Hausaufgaben-Sperre und Rücknahme werden in der Datenbank geprüft (`supabase/migrations`)
 - **Vercel**: statische App aus `dist/`, Videos in `public/media` (720p)
-- **GitHub Actions**: `supabase.yml` spielt Datenbank-Änderungen ein, `ci.yml` prüft Tests und Build
+- **GitHub Actions**: `ci.yml` prüft Tests und Build
 
 ## Entwickeln
 

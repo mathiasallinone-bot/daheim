@@ -1,0 +1,1 @@
+revoke execute on function public.create_family(text), public.join_family(text), public.complete_recurring(uuid), public.star_balance(uuid), public.is_family_member(uuid), public.undo_completion(uuid), public.homework_missing_for_close(uuid, date) from anon, public;
