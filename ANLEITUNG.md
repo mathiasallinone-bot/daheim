@@ -25,17 +25,17 @@ Noch von dir zu tun, im Supabase-Dashboard (<https://supabase.com/dashboard> →
 
 1. **Authentication → Users → Add user → Create new user**: E-Mail und Passwort eintragen, *Auto Confirm User* anhaken. Für jede Person wiederholen, die sich anmelden soll.
 2. Danach **Authentication → Sign In / Providers**: *Allow new users to sign up* **ausschalten** → Save. So kann sich niemand Fremdes registrieren.
-3. **Authentication → URL Configuration → Site URL**: die Vercel-Adresse eintragen (für «Passwort vergessen»-Mails).
+3. **Authentication → URL Configuration → Site URL**: `https://daheim-five.vercel.app` eintragen (für «Passwort vergessen»-Mails).
 
 Datenbank-Änderungen macht Claude künftig direkt über den Supabase-Connector; jede Änderung liegt zusätzlich als Datei in `supabase/migrations`.
 
 ## 3. Vercel – App
 
-Wird von Claude über den Vercel-Connector eingerichtet (Projekt `daheim`, verbunden mit diesem Repo). Jeder Push auf `main` veröffentlicht automatisch.
+✅ Online unter **https://daheim-five.vercel.app** (Vercel-Projekt `daheim`, verbunden mit diesem Repo). Jeder Push auf `main` veröffentlicht automatisch.
 
 ## 4. Erste Anmeldung und Familie verbinden
 
-1. Vercel-Adresse öffnen und mit einem Konto aus Schritt 2.1 anmelden.
+1. https://daheim-five.vercel.app öffnen und mit einem Konto aus Schritt 2.1 anmelden.
 2. Die App fragt nach der Familie. Bei **Einladung annehmen** den Code `6a2cea9e0f` eingeben → **Beitreten**.
 3. Jetzt erscheinen Sianas Sterne und alle bisherigen Aufgaben. Für jedes weitere Konto Schritt 1–2 wiederholen.
 
