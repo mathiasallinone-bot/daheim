@@ -160,3 +160,39 @@ export const STAR_REASON: Record<string, string> = {
   "kleider-zusammenlegen": "🧺 Zehnmal Kleider zusammengelegt · +1 ⭐",
   abfall: "🗑️ Abfall runtergebracht · +1 ⭐",
 };
+
+export type WaterCheck = { day: string; hour: number; kind: string; answered_at: string };
+
+/** Antworten auf die Wasser-Erinnerung für einen Tag. */
+export function useWaterChecks(familyId: string, day: string) {
+  return useQuery({
+    queryKey: ["water", familyId, day],
+    queryFn: async (): Promise<WaterCheck[]> => {
+      const { data, error } = await supabase
+        .from("water_checks")
+        .select("day,hour,kind,answered_at")
+        .eq("family_id", familyId)
+        .eq("day", day);
+      if (error) throw error;
+      return data;
+    },
+    refetchInterval: 60_000,
+  });
+}
+
+export function useAnswerWater(familyId: string) {
+  const inv = useInvalidate();
+  return useMutation({
+    mutationFn: async (v: { day: string; hour: number; kind: "flasche" | "trinken"; undo?: boolean }) => {
+      if (v.undo) {
+        const { error } = await supabase.from("water_checks").delete().eq("family_id", familyId).eq("day", v.day).eq("hour", v.hour);
+        if (error) throw error;
+        return;
+      }
+      const { error } = await supabase.from("water_checks").insert({ family_id: familyId, day: v.day, hour: v.hour, kind: v.kind });
+      if (error && error.code !== "23505") throw error;
+    },
+    onSuccess: () => inv("water"),
+    onError: (e) => toast.error("Nicht gespeichert", { description: friendlyError(e) }),
+  });
+}

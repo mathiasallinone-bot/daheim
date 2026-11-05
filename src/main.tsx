@@ -12,8 +12,10 @@ import "@fontsource/fredoka/700.css";
 import "./styles.css";
 
 import { getRouter } from "./router";
+import { registerServiceWorker } from "./lib/push";
 
 const router = getRouter();
+registerServiceWorker();
 
 declare module "@tanstack/react-router" {
   interface Register {

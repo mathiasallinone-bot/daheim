@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dayStatus, formatCH, isRecurringDue, tasksFor, thursdayActivity, todayZurich, addDays, TASK_STARS, HAIR_SELF_STARS, WEEK_BONUS_STARS, TRASH_STARS, READING_EVERY, LAUNDRY_EVERY, milestoneStars, laundryPart, weekDaysEnding, isWeekComplete, homeworkStep, homeworkUrgent, homeworkVisible, homeworkReminder, homeworkBlocksClose } from "./plan";
+import { dayStatus, formatCH, isRecurringDue, tasksFor, thursdayActivity, todayZurich, addDays, TASK_STARS, HAIR_SELF_STARS, WEEK_BONUS_STARS, TRASH_STARS, READING_EVERY, LAUNDRY_EVERY, milestoneStars, laundryPart, weekDaysEnding, isWeekComplete, homeworkStep, homeworkUrgent, homeworkVisible, homeworkReminder, homeworkBlocksClose, schoolEnd, schoolLessons, waterSlots } from "./plan";
 
 const keys = (d: string) => tasksFor(d).map((t) => t.key);
 
@@ -153,5 +153,37 @@ describe("Hausaufgaben-Regeln pro Schulwoche", () => {
   });
   it("Donnerstag vor Ferien-Freitag (24.12.2026) blockiert nicht", () => {
     expect(homeworkBlocksClose("2026-12-24", "erledigen")).toBe(false);
+  });
+});
+
+describe("Stundenplan und Wasser-Erinnerung", () => {
+  it("Montag und Dienstag: Schule bis 15:20, keine Wasser-Erinnerung", () => {
+    expect(schoolEnd("2026-11-09")).toBe("15:20");
+    expect(schoolEnd("2026-11-10")).toBe("15:20");
+    expect(waterSlots("2026-11-09")).toEqual([]);
+  });
+  it("Mittwoch und Freitag: Nachmittag frei → 12, 15, 18 Uhr", () => {
+    for (const d of ["2026-11-11", "2026-11-13"]) {
+      expect(schoolEnd(d)).toBe("11:55");
+      expect(waterSlots(d)).toEqual([{ hour: 12, kind: "flasche" }, { hour: 15, kind: "trinken" }, { hour: 18, kind: "trinken" }]);
+    }
+  });
+  it("Donnerstag mit Schwimmen: Nachmittag frei; mit Turnen: MGS bis 15:20", () => {
+    expect(thursdayActivity("2026-11-12")).toBe("schwimmen");
+    expect(schoolEnd("2026-11-12")).toBe("11:55");
+    expect(waterSlots("2026-11-12").map((s) => s.hour)).toEqual([12, 15, 18]);
+    expect(thursdayActivity("2026-11-05")).toBe("turnen");
+    expect(schoolEnd("2026-11-05")).toBe("15:20");
+    expect(waterSlots("2026-11-05")).toEqual([]);
+  });
+  it("Wochenende und Ferien: 9 Uhr Flasche, dann alle 3 Stunden trinken", () => {
+    for (const d of ["2026-11-07", "2026-11-08", "2026-12-28"]) {
+      expect(schoolLessons(d)).toEqual([]);
+      expect(waterSlots(d)).toEqual([{ hour: 9, kind: "flasche" }, { hour: 12, kind: "trinken" }, { hour: 15, kind: "trinken" }, { hour: 18, kind: "trinken" }]);
+    }
+  });
+  it("24.12. (Ferien ab Mittag): freier Nachmittag", () => {
+    expect(schoolEnd("2026-12-24")).toBe("11:55");
+    expect(waterSlots("2026-12-24").map((s) => s.hour)).toEqual([12, 15, 18]);
   });
 });

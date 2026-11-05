@@ -44,6 +44,23 @@ Datenbank-Änderungen macht Claude künftig direkt über den Supabase-Connector;
 - **iPhone/iPad (Safari):** Adresse öffnen → Teilen → *Zum Home-Bildschirm*. Das Kätzchen wird zum App-Symbol.
 - **Android (Chrome):** Adresse öffnen → Menü → *App installieren*.
 
+## Wasser-Wecker
+
+Das Kätzchen erinnert Siana ans Trinken – nur an schulfreien Tagen und Nachmittagen (die App kennt den Stundenplan der Klasse 2a):
+
+| Tag | Erinnerungen |
+|---|---|
+| Samstag, Sonntag, Ferien | 9 Uhr «Wasserflasche bereit?», dann 12, 15 und 18 Uhr «Hast du getrunken?» |
+| Mittwoch, Freitag, Donnerstag mit Schwimmen (Nachmittag frei) | 12 Uhr «Wasserflasche bereit?», dann 15 und 18 Uhr |
+| Montag, Dienstag, Donnerstag mit MGS (Schule bis 15:20) | keine |
+
+**Einschalten (einmal, auf Sianas Gerät):**
+1. iPhone/iPad: die App zuerst über Teilen → *Zum Home-Bildschirm* hinzufügen und von dort öffnen (nur so erlaubt Apple Benachrichtigungen).
+2. Auf «Heute» in der Karte **💧 Wasser trinken** → **Einschalten** → Benachrichtigungen erlauben.
+3. **Test senden** antippen – nach wenigen Sekunden sollte die Benachrichtigung erscheinen.
+
+Ist die App offen, erscheint das Kätzchen bildschirmfüllend mit Ton («Gleich» erinnert nach 10 Minuten nochmals). Ist sie geschlossen, kommt eine Benachrichtigung. Beantwortete Erinnerungen werden nicht nochmals geschickt. Auf den Geräten der Eltern bleibt der Wecker aus, solange er dort nicht eingeschaltet wird.
+
 ## 6. Umstellen
 
 Am Tag des Wechsels Claude sagen: «Übernimm die neuen Daten aus Lovable». Claude ergänzt dann alles, was seit dem 05.11.2026 in der Lovable-Version dazugekommen ist. Danach nur noch die neue Adresse benutzen.

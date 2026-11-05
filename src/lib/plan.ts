@@ -171,3 +171,71 @@ export function isWeekComplete(sunday: string, done: Set<string>): boolean {
 export function isRecurringDue(nextDue: string, today: string): boolean {
   return nextDue <= today;
 }
+
+/* ---------- Stundenplan Klasse 2a Melchenbühl, Schuljahr 2026/27 ---------- */
+
+export type Lesson = { from: string; to: string; subject: string };
+
+const MORNING: Record<number, Lesson[]> = {
+  1: [{ from: "08:20", to: "11:55", subject: "GU" }],
+  2: [
+    { from: "08:20", to: "09:05", subject: "GU" },
+    { from: "09:10", to: "09:55", subject: "Sport" },
+    { from: "10:20", to: "11:55", subject: "GU" },
+  ],
+  3: [{ from: "08:20", to: "11:55", subject: "GU" }],
+  4: [
+    { from: "08:20", to: "09:05", subject: "Sport/Schwimmen" },
+    { from: "09:10", to: "09:55", subject: "GU" },
+    { from: "10:20", to: "11:55", subject: "Gestalten" },
+  ],
+  5: [{ from: "08:20", to: "11:55", subject: "GU" }],
+};
+const AFTERNOON: Record<number, Lesson[]> = {
+  1: [
+    { from: "13:45", to: "14:30", subject: "Sport" },
+    { from: "14:35", to: "15:20", subject: "GU" },
+  ],
+  2: [{ from: "13:45", to: "15:20", subject: "GU" }],
+  // Donnerstag: MGS nur in den Wochen ohne Schwimmen (siehe schoolLessons)
+  4: [{ from: "13:45", to: "15:20", subject: "MGS" }],
+};
+
+/** Unterricht an einem Tag (leer an Wochenenden und in den Ferien). */
+export function schoolLessons(iso: string): Lesson[] {
+  const st = dayStatus(iso);
+  if (st.kind === "wochenende" || st.kind === "ferien") return [];
+  const wd = weekday(iso);
+  const am = MORNING[wd] ?? [];
+  if (st.kind === "halbtag") return am;
+  const pm = wd === 4 && isSwimDay(iso) ? [] : (AFTERNOON[wd] ?? []);
+  return [...am, ...pm];
+}
+
+/** Ende des Unterrichts ("HH:MM") oder null, wenn schulfrei. */
+export function schoolEnd(iso: string): string | null {
+  const l = schoolLessons(iso);
+  return l.length ? l[l.length - 1]!.to : null;
+}
+
+/** Schulfreier Nachmittag an einem Schultag (Mi, Fr, Do mit Schwimmen, Halbtag). */
+export function hasFreeAfternoon(iso: string): boolean {
+  const end = schoolEnd(iso);
+  return end !== null && end <= "12:00";
+}
+
+/* ---------- Wasser-Erinnerung ---------- */
+
+export type WaterSlot = { hour: number; kind: "flasche" | "trinken" };
+
+/** Erinnerungszeiten (volle Stunden, Zürich): schulfrei 9/12/15/18 Uhr, freier Nachmittag 12/15/18 Uhr.
+ *  Die erste Erinnerung fragt nach der Wasserflasche, die weiteren ob getrunken wurde. Muss zu public.water_slots passen. */
+export function waterSlots(iso: string): WaterSlot[] {
+  const hours = schoolEnd(iso) === null ? [9, 12, 15, 18] : hasFreeAfternoon(iso) ? [12, 15, 18] : [];
+  return hours.map((hour, i) => ({ hour, kind: i === 0 ? "flasche" : "trinken" }));
+}
+
+export const WATER_TEXT: Record<WaterSlot["kind"], { title: string; question: string; yes: string }> = {
+  flasche: { title: "Wasserflasche bereit?", question: "Hallo Siana! Ist deine Wasserflasche gefüllt und bereit?", yes: "💧 Ja, sie ist bereit!" },
+  trinken: { title: "Zeit zum Trinken!", question: "Hey Siana, hast du schon Wasser getrunken?", yes: "💧 Ja, ich habe getrunken!" },
+};

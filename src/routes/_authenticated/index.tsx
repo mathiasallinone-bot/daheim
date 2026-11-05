@@ -13,6 +13,7 @@ import { EmptyState, ErrorState, LoadingState } from "@/components/States";
 import { RecurringCard } from "@/components/RecurringCard";
 import { TaskList } from "@/components/TaskList";
 import { HomeworkCard } from "@/components/HomeworkCard";
+import { WaterCard } from "@/components/WaterReminder";
 import { DayCloseDialog, primeSpeech } from "@/components/DayCloseDialog";
 import { useConfirmUndo } from "@/components/ConfirmUndo";
 import {
@@ -204,6 +205,8 @@ function TodayPage() {
           </Button>
         )}
       </section>
+      <WaterCard day={day} />
+
       <DayCloseDialog mode="morgen" onNavigate={(iso) => void go(iso)} open={closingMorning} onOpenChange={setClosingMorning} familyId={fam.id} day={day} tasks={morning} byKey={byKey} laundry={morningLaundry} />
       <DayCloseDialog onNavigate={(iso) => void go(iso)} open={closing} onOpenChange={setClosing} familyId={fam.id} day={day} tasks={tasks} byKey={byKey} laundry={openLaundry} />
 

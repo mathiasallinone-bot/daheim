@@ -11,7 +11,8 @@ import { EmptyState, ErrorState, LoadingState } from "@/components/States";
 import { friendlyError, useCompletions, useInvalidate, useSchedule } from "@/lib/data";
 import { useFamily } from "@/lib/family-context";
 import {
-  addDays, dayStatus, formatCH, isValidISO, mondayOf, tasksFor, thursdayActivity, todayZurich, weekday, weekdayName, weekdayShort,
+  addDays, dayStatus, formatCH, isValidISO, mondayOf, schoolLessons, tasksFor, thursdayActivity, todayZurich, weekday, weekdayName, weekdayShort,
+  type Lesson,
 } from "@/lib/plan";
 import { weekTileLabel } from "@/lib/week-label";
 
@@ -41,6 +42,17 @@ function itemsFor(iso: string, entries: Entry[]): Item[] {
     if (matchWeekly && st.kind === "halbtag" && e.start_time >= "12:00") continue;
     items.push({ id: e.id, time: `${e.start_time.slice(0, 5)}${e.end_time ? `–${e.end_time.slice(0, 5)}` : ""}`, title: e.title, kind: e.kind });
   }
+  // Stundenplan (Schule) automatisch; Donnerstag hat eigene Einträge unten
+  const wd = weekday(iso);
+  if (wd !== 4) {
+    const lessons = schoolLessons(iso);
+    const am = lessons.filter((l) => l.from < "12:00");
+    const pm = lessons.filter((l) => l.from >= "12:00");
+    const sub = (ls: Lesson[]) => (ls.some((l) => l.subject !== "GU") ? ` (inkl. ${ls.filter((l) => l.subject !== "GU").map((l) => l.subject).join(", ")})` : "");
+    if (am.length) items.push({ id: "auto-am", time: `${am[0]!.from}–${am[am.length - 1]!.to}`, title: `Schule${sub(am)}`, kind: "schule", auto: true });
+    if (pm.length) items.push({ id: "auto-pm", time: `${pm[0]!.from}–${pm[pm.length - 1]!.to}`, title: `Schule${sub(pm)}`, kind: "schule", auto: true });
+    else if (am.length) items.push({ id: "auto-frei", time: "ab 12:00", title: "Nachmittag frei", kind: "frei", auto: true });
+  }
   const act = thursdayActivity(iso);
   if (act === "schwimmen") items.push({ id: "auto-swim", time: "Vormittag", title: "Schwimmen (Gruppe A) · Nachmittag frei", kind: "swim", auto: true });
   if (act === "turnen") {
@@ -55,8 +67,10 @@ const KIND_CLS: Record<string, string> = {
   mgs: "bg-done-soft text-done",
   termin: "bg-accent text-accent-foreground",
   swim: "bg-swim-soft text-swim",
+  schule: "bg-muted text-muted-foreground",
+  frei: "bg-done-soft text-done",
 };
-const KIND_LABEL: Record<string, string> = { lektion: "Lektion", mgs: "MGS", termin: "Termin", swim: "Schwimmen" };
+const KIND_LABEL: Record<string, string> = { lektion: "Lektion", mgs: "MGS", termin: "Termin", swim: "Schwimmen", schule: "Schule", frei: "Frei" };
 
 function WeekPage() {
   const fam = useFamily();
@@ -103,7 +117,7 @@ function WeekPage() {
           >
             {days.map((iso) => {
               const st = dayStatus(iso);
-              const n = itemsFor(iso, entries).length;
+              const n = itemsFor(iso, entries).filter((it) => it.kind !== "schule" && it.kind !== "frei").length;
               const tasks = tasksFor(iso);
               const done = tasks.filter((t) => comps.data?.some((c) => c.day === iso && c.task_key === t.key)).length;
               const sel = iso === day;

@@ -292,6 +292,18 @@ export type Database = {
           },
         ]
       }
+      water_checks: {
+        Row: { answered_at: string; answered_by: string; day: string; family_id: string; hour: number; kind: string }
+        Insert: { answered_at?: string; answered_by?: string; day: string; family_id: string; hour: number; kind: string }
+        Update: { answered_at?: string; answered_by?: string; day?: string; family_id?: string; hour?: number; kind?: string }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: { auth: string; created_at: string; endpoint: string; family_id: string; p256dh: string; user_id: string }
+        Insert: { auth: string; created_at?: string; endpoint: string; family_id: string; p256dh: string; user_id: string }
+        Update: { auth?: string; created_at?: string; endpoint?: string; family_id?: string; p256dh?: string; user_id?: string }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -326,6 +338,9 @@ export type Database = {
       join_family: { Args: { _code: string }; Returns: string }
       star_balance: { Args: { _family_id: string }; Returns: number }
       undo_completion: { Args: { _id: string }; Returns: undefined }
+      save_push_subscription: { Args: { _auth: string; _endpoint: string; _family_id: string; _p256dh: string }; Returns: undefined }
+      remove_push_subscription: { Args: { _endpoint: string }; Returns: undefined }
+      water_slots: { Args: { _d: string }; Returns: number[] }
     }
     Enums: {
       [_ in never]: never

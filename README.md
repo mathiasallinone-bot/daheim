@@ -26,8 +26,10 @@ npm run build
 
 | Datei | Inhalt |
 |---|---|
-| `src/lib/plan.ts` | alle Regeln: Aufgaben pro Tag, Ferien, Donnerstagsrotation, Hausaufgaben |
+| `src/lib/plan.ts` | alle Regeln: Aufgaben pro Tag, Ferien, Donnerstagsrotation, Hausaufgaben, Stundenplan, Wasser-Zeiten |
 | `src/lib/kitten-video.ts` | welches Kätzchen-Video wann erscheint |
+| `src/components/WaterReminder.tsx`, `src/lib/push.ts`, `public/sw.js` | Wasser-Wecker in der App und Benachrichtigungen |
+| `supabase/functions/water-reminder` | verschickt die Benachrichtigungen (stündlich per pg_cron) |
 | `src/lib/data.ts` | Laden und Speichern |
 | `supabase/migrations/` | Tabellen, Zugriffsregeln, Sterne-Trigger; zuletzt die Datenübernahme aus Lovable |
 
