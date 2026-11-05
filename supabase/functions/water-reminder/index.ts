@@ -72,7 +72,11 @@ Deno.serve(async (req) => {
     const cron = req.headers.get("x-cron-secret");
     if (cron) {
       if (!s.water_cron_secret || cron !== s.water_cron_secret) return json({ error: "forbidden" }, 403);
-      const targets = await sql<Target[]>`select * from public.water_push_due()`;
+      const body = (await req.json().catch(() => ({}))) as { test?: boolean };
+      // Admin-Test (aus der Datenbank ausgelöst): an alle angemeldeten Geräte
+      const targets = body.test
+        ? await sql<Target[]>`select endpoint, p256dh, auth, 0 as hour, 'test' as kind from public.push_subscriptions`
+        : await sql<Target[]>`select * from public.water_push_due()`;
       return json({ due: targets.length, ...(await send(targets)) });
     }
 
