@@ -76,6 +76,19 @@ export function DayCloseDialog({
     })();
   }, [morning, open, showKitten, dayDone, byKey, day, familyId, inv]);
 
+  // Abschluss gedrückt (nur heute): zählt gegen «vergessene Abschlüsse», unabhängig davon, ob schon alles erledigt ist.
+  const closureKey = morning ? "morgenabschluss" : "abendabschluss";
+  const markedRef = useRef(false);
+  useEffect(() => {
+    if (!open || !showKitten || markedRef.current || byKey.has(closureKey) || day !== todayZurich()) return;
+    markedRef.current = true;
+    void (async () => {
+      await supabase.from("task_completions").insert({ family_id: familyId, day, task_key: closureKey });
+      await inv("completions");
+      markedRef.current = false;
+    })();
+  }, [open, showKitten, byKey, closureKey, day, familyId, inv]);
+
   // Wochenbonus sicher buchen; Datenbank prüft die Woche selbst nochmals.
   const claiming = useRef(false);
   useEffect(() => {

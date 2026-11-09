@@ -67,24 +67,18 @@ describe("Abwechslung beim Abschluss", () => {
     [true, true, {}], [true, true, { schoolFree: true }], [true, false, {}],
     [false, false, {}], [false, true, {}], [false, true, { weekDone: true }],
   ];
-  it.each(cases)("Morgen=%s fertig=%s %o: mind. 4 verschiedene Clips, Original zuerst", (m, d, o) => {
+  it.each(cases)("Morgen=%s fertig=%s %o: Original-Clip zuerst, nur lippensynchrone Clips", (m, d, o) => {
     const clips = closureClips(m, d, o);
-    expect(new Set(clips.map((c) => c.mp4)).size).toBeGreaterThanOrEqual(4);
     expect(clips[0]).toEqual(kittenVideo(m, d, o));
-    for (const c of clips) expect(c.phrase).toContain("Siana");
-  });
-  it("nie zweimal hintereinander derselbe Clip", () => {
-    for (const [m, d, o] of cases) {
-      const clips = closureClips(m, d, o);
-      for (const last of clips) for (const r of [0, 0.25, 0.5, 0.75, 0.9999]) {
-        expect(pickClip(clips, r, last.mp4).mp4).not.toBe(last.mp4);
-      }
+    for (const c of clips) {
+      expect(c.phrase).toContain("Siana");
+      expect(c.mp4).not.toContain("/var-");
     }
   });
-  it("ohne Vorgeschichte sind alle Clips erreichbar", () => {
-    const clips = closureClips(false, true);
-    const seen = new Set([0, 0.3, 0.55, 0.8].map((r) => pickClip(clips, r, null).mp4));
-    expect(seen.size).toBe(4);
+  it("nie zweimal hintereinander derselbe Clip (sofern es Alternativen gibt)", () => {
+    const clips = [{ mp4: "a", phrase: "" }, { mp4: "b", phrase: "" }, { mp4: "c", phrase: "" }];
+    for (const last of clips) for (const r of [0, 0.5, 0.9999]) expect(pickClip(clips, r, last.mp4).mp4).not.toBe(last.mp4);
+    expect(pickClip([clips[0]!], 0.5, "a").mp4).toBe("a");
   });
   it("Situationen", () => {
     expect(closureSituation(true, true, { schoolFree: true })).toBe("morgen-frei");

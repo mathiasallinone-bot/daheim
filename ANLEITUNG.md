@@ -61,6 +61,24 @@ Das Kätzchen erinnert Siana ans Trinken – nur an schulfreien Tagen und Nachmi
 
 Ist die App offen, erscheint das Kätzchen bildschirmfüllend mit Ton («Gleich» erinnert nach 10 Minuten nochmals). Ist sie geschlossen, kommt eine Benachrichtigung. Beantwortete Erinnerungen werden nicht nochmals geschickt. Auf den Geräten der Eltern bleibt der Wecker aus, solange er dort nicht eingeschaltet wird.
 
+## Sterne-Regeln (seit 09.11.2026)
+
+Siana sieht nur: «Es gibt geheime Spezial-Sterne» und den Zähler «Vergessene Abschlüsse x von 5». Die genauen Regeln stehen hier.
+
+| Was | Sterne |
+|---|---|
+| Tägliche Aufgaben (Zähne, Haare, Rucksack …) | keine einzeln; ganze Woche erledigt → Wochenbonus +1 am Sonntag |
+| Frühaufsteher (geheim): alle Morgenaufgaben 7 von 7 Tagen abgehakt, Mo–Fr vor 8 Uhr, Sa/So vor 10 Uhr | +1 am Sonntag, zusätzlich zum Wochenbonus |
+| Hausaufgaben schon am Montag erledigt (geheim) | +1 |
+| Buch gelesen | jedes 5. Mal +1, etwa jedes 3. Mal davon als Doppelstern +2 |
+| Katzentoiletten geputzt | jedes 5. Mal +1; Spezialwoche 9.–15.11.2026: jedes Mal +6 (max. 1× pro Tag) |
+| Abfall runtergebracht | +1 |
+| Kleider zusammengelegt | jedes 10. Mal +1 |
+| Haare selber gewaschen | +1 |
+| 5× vergessen, Morgen oder Tag abzuschliessen (getrennt gezählt, ab 09.11. abends) | −1, danach beginnt der Zähler neu |
+
+Als abgeschlossen zählt, wenn am selben Tag «Morgen abschliessen» bzw. «Tag abschliessen» gedrückt wurde. Fällige Abzüge bucht die Datenbank beim Öffnen der App und jede Nacht.
+
 ## 6. Umstellen
 
 Am Tag des Wechsels Claude sagen: «Übernimm die neuen Daten aus Lovable». Claude ergänzt dann alles, was seit dem 05.11.2026 in der Lovable-Version dazugekommen ist. Danach nur noch die neue Adresse benutzen.

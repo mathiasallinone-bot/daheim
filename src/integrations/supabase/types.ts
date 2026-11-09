@@ -337,6 +337,7 @@ export type Database = {
       is_swim_day: { Args: { _d: string }; Returns: boolean }
       join_family: { Args: { _code: string }; Returns: string }
       star_balance: { Args: { _family_id: string }; Returns: number }
+      closure_status: { Args: { _family_id: string }; Returns: Json }
       undo_completion: { Args: { _id: string }; Returns: undefined }
       save_push_subscription: { Args: { _auth: string; _endpoint: string; _family_id: string; _p256dh: string }; Returns: undefined }
       remove_push_subscription: { Args: { _endpoint: string }; Returns: undefined }

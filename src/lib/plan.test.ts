@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dayStatus, formatCH, isRecurringDue, tasksFor, thursdayActivity, todayZurich, addDays, TASK_STARS, HAIR_SELF_STARS, WEEK_BONUS_STARS, TRASH_STARS, READING_EVERY, LAUNDRY_EVERY, milestoneStars, laundryPart, weekDaysEnding, isWeekComplete, homeworkStep, homeworkUrgent, homeworkVisible, homeworkReminder, homeworkBlocksClose, schoolEnd, schoolLessons, waterSlots } from "./plan";
+import { dayStatus, formatCH, isRecurringDue, tasksFor, thursdayActivity, todayZurich, addDays, TASK_STARS, HAIR_SELF_STARS, WEEK_BONUS_STARS, TRASH_STARS, READING_EVERY, LAUNDRY_EVERY, milestoneStars, laundryPart, weekDaysEnding, isWeekComplete, homeworkStep, homeworkUrgent, homeworkVisible, homeworkReminder, homeworkBlocksClose, schoolEnd, schoolLessons, waterSlots, isLitterSpecial, morningDeadlineHour, morningTasks } from "./plan";
 
 const keys = (d: string) => tasksFor(d).map((t) => t.key);
 
@@ -185,5 +185,21 @@ describe("Stundenplan und Wasser-Erinnerung", () => {
   it("24.12. (Ferien ab Mittag): freier Nachmittag", () => {
     expect(schoolEnd("2026-12-24")).toBe("11:55");
     expect(waterSlots("2026-12-24").map((s) => s.hour)).toEqual([12, 15, 18]);
+  });
+});
+
+describe("Belohnungen v2", () => {
+  it("Katzenklo-Spezialwoche 9.–15.11.2026", () => {
+    expect(isLitterSpecial("2026-11-08")).toBe(false);
+    expect(isLitterSpecial("2026-11-09")).toBe(true);
+    expect(isLitterSpecial("2026-11-15")).toBe(true);
+    expect(isLitterSpecial("2026-11-16")).toBe(false);
+  });
+  it("Frühaufsteher-Frist: Mo–Fr 8, Sa/So und Weihnachtsferien 10 Uhr", () => {
+    expect(morningDeadlineHour("2026-11-09")).toBe(8);
+    expect(morningDeadlineHour("2026-11-14")).toBe(10);
+    expect(morningDeadlineHour("2026-11-15")).toBe(10);
+    expect(morningDeadlineHour("2026-12-28")).toBe(10);
+    expect(morningDeadlineHour("2027-01-11")).toBe(8);
   });
 });

@@ -104,6 +104,12 @@ export const LAUNDRY_EVERY = 10;
 /** Buch lesen: jedes 5. Mal 1 Stern. */
 export const READING_EVERY = 5;
 export const TRASH_STARS = 1;
+/** Katzenklo putzen: jedes 5. Mal 1 Stern; in der Spezialwoche jedes Mal 6 Sterne. Muss zum DB-Trigger passen. */
+export const LITTER_EVERY = 5;
+export const LITTER_SPECIAL = { from: "2026-11-09", to: "2026-11-15", stars: 6 } as const;
+export const isLitterSpecial = (iso: string) => iso >= LITTER_SPECIAL.from && iso <= LITTER_SPECIAL.to;
+/** Vergessene Morgen- bzw. Tagesabschlüsse bis zum Abzug von 1 Stern. */
+export const CLOSURE_LIMIT = 5;
 export const FOOD_STARS = 0;
 /** Sterne für das n-te Erledigen (1-basiert) einer Meilenstein-Aufgabe. Muss zum DB-Trigger passen. */
 export const milestoneStars = (n: number, every: number) => (n > 0 && n % every === 0 ? 1 : 0);
@@ -135,6 +141,8 @@ export function tasksFor(iso: string): TaskDef[] {
   return out;
 }
 export const morningTasks = (iso: string) => tasksFor(iso).filter((t) => t.part === "morgen");
+/** Frühaufsteher-Frist (Stunde, Zürich): Mo–Fr 8 Uhr, Sa/So und Weihnachtsferien 10 Uhr. Muss zu public.morning_deadline passen. */
+export const morningDeadlineHour = (iso: string) => (weekday(iso) >= 6 || (iso >= XMAS_FROM && iso <= XMAS_TO) ? 10 : 8);
 export const eveningTasks = (iso: string) => tasksFor(iso).filter((t) => t.part === "abend");
 
 /** Hausaufgaben: kommen am Montag, bis Freitag; gespeichert auf dem Montag der Woche. */

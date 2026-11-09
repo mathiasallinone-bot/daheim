@@ -132,7 +132,7 @@ export function useToggleTask(familyId: string) {
         .select("stars")
         .single();
       if (error && error.code !== "23505") throw error;
-      if (data && data.stars > 0) showStarKitten(STAR_REASON[v.key] ?? "Belohnungsstern");
+      if (data && data.stars > 0) showStarKitten(starReason(v.key, data.stars));
       else if (data) {
         // Hausaufgaben werden auf dem Montag der Woche gespeichert.
         const today = todayZurich();
@@ -159,7 +159,54 @@ export const STAR_REASON: Record<string, string> = {
   haarewaschen: "🧴 Haare selber gewaschen · +1 ⭐",
   "kleider-zusammenlegen": "🧺 Zehnmal Kleider zusammengelegt · +1 ⭐",
   abfall: "🗑️ Abfall runtergebracht · +1 ⭐",
+  katzenklo: "🧹 Fünfmal Katzenklo geputzt · +1 ⭐",
+  fruehaufsteher: "🌅 Überraschung! Die ganze Woche am Morgen schnell gewesen · +1 ⭐",
+  "hausaufgaben-bonus": "📝 Überraschung! Hausaufgaben schon am Montag erledigt · +1 ⭐",
 };
+
+/** Text für das Stern-Kätzchen, abhängig von der Anzahl Sterne. */
+export function starReason(key: string, stars: number): string {
+  if (key === "buch-lesen" && stars >= 2) return `📖✨ Doppelstern! Fünfmal Buch gelesen · +${stars} ⭐`;
+  if (key === "katzenklo" && stars > 1) return `🧹✨ Katzenklo-Spezialwoche! · +${stars} ⭐`;
+  return STAR_REASON[key] ?? (stars > 1 ? `Belohnung · +${stars} ⭐` : "Belohnungsstern");
+}
+
+/** Geheime Extras und Abzüge, die die Datenbank selbst bucht. */
+export const SPECIAL_KEYS = ["fruehaufsteher", "hausaufgaben-bonus", "abzug"] as const;
+
+export function useSpecialRewards(familyId: string) {
+  return useQuery({
+    // unter "completions", damit jedes Abhaken die Liste neu lädt
+    queryKey: ["completions", familyId, "specials"],
+    queryFn: async () => {
+      const since = new Date(Date.now() - 14 * 86_400_000).toISOString();
+      const { data, error } = await supabase
+        .from("task_completions")
+        .select("id,day,task_key,stars,created_at")
+        .eq("family_id", familyId)
+        .in("task_key", [...SPECIAL_KEYS])
+        .gte("created_at", since)
+        .order("created_at");
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export type ClosureStatus = { counter: number; limit: number; new_penalties: number };
+
+/** Zähler vergessener Abschlüsse; bucht fällige Abzüge (Server prüft alles). */
+export function useClosureStatus(familyId: string) {
+  return useQuery({
+    queryKey: ["completions", familyId, "closure-status"],
+    queryFn: async (): Promise<ClosureStatus> => {
+      const { data, error } = await supabase.rpc("closure_status", { _family_id: familyId });
+      if (error) throw error;
+      return data as unknown as ClosureStatus;
+    },
+    staleTime: 60_000,
+  });
+}
 
 export type WaterCheck = { day: string; hour: number; kind: string; answered_at: string };
 

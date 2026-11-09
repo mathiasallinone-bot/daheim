@@ -14,6 +14,7 @@ import { RecurringCard } from "@/components/RecurringCard";
 import { TaskList } from "@/components/TaskList";
 import { HomeworkCard } from "@/components/HomeworkCard";
 import { WaterCard } from "@/components/WaterReminder";
+import { ClosureCounter, RewardHint } from "@/components/Rewards";
 import { DayCloseDialog, primeSpeech } from "@/components/DayCloseDialog";
 import { useConfirmUndo } from "@/components/ConfirmUndo";
 import {
@@ -23,11 +24,11 @@ import {
   useInvalidate,
   useLaundry,
   useRecurring,
-  STAR_REASON,
+  starReason,
 } from "@/lib/data";
 import { showKittenClip, showStarKitten } from "@/components/StarKitten";
 import { useFamily } from "@/lib/family-context";
-import { HAIR_SELF_STARS, LAUNDRY_EVERY, READING_EVERY, TRASH_STARS, WEEK_BONUS_STARS, addDays, formatCH, isRecurringDue, isValidISO, tasksFor, todayZurich, weekday } from "@/lib/plan";
+import { HAIR_SELF_STARS, LAUNDRY_EVERY, LITTER_EVERY, LITTER_SPECIAL, READING_EVERY, TRASH_STARS, CLOSURE_LIMIT, isLitterSpecial, WEEK_BONUS_STARS, addDays, formatCH, isRecurringDue, isValidISO, tasksFor, todayZurich, weekday } from "@/lib/plan";
 
 export const Route = createFileRoute("/_authenticated/")({
   validateSearch: (s: Record<string, unknown>): { d?: string } => (isValidISO(s["d"]) ? { d: s["d"] } : {}),
@@ -101,7 +102,7 @@ function TodayPage() {
     mutationFn: async (key: string) => {
       const { data, error } = await supabase.from("task_completions").insert({ family_id: fam.id, day, task_key: key }).select("stars").single();
       if (error && error.code !== "23505") throw error;
-      if (data && data.stars > 0) showStarKitten(STAR_REASON[key] ?? "Belohnungsstern");
+      if (data && data.stars > 0) showStarKitten(starReason(key, data.stars));
       return { created: !error, stars: data?.stars ?? 0 };
     },
     onSuccess: ({ created, stars }) => {
@@ -126,7 +127,12 @@ function TodayPage() {
   const total = tasks.length + openLaundry.length;
   const EXTRAS = [
     { key: "trockenfutter", label: "🐱 Trockenfutter aufgefüllt", info: "bei Bedarf, max. 1× pro Tag" },
-    { key: "buch-lesen", label: "📖 Buch gelesen", info: `max. 1× pro Tag · jedes ${READING_EVERY}. Mal +1 ⭐` },
+    { key: "buch-lesen", label: "📖 Buch gelesen", info: `max. 1× pro Tag · jedes ${READING_EVERY}. Mal +1 ⭐ – manchmal mehr ✨` },
+    {
+      key: "katzenklo",
+      label: "🧹 Katzentoiletten geputzt",
+      info: isLitterSpecial(day) ? `Spezialwoche: jedes Mal +${LITTER_SPECIAL.stars} ⭐ · max. 1× pro Tag` : `max. 1× pro Tag · jedes ${LITTER_EVERY}. Mal +1 ⭐`,
+    },
     { key: "abfall", label: "🗑️ Abfall runtergebracht", info: `max. 1× pro Tag · +${TRASH_STARS} ⭐` },
   ];
   const todayLaundry = (laundry.data ?? []).find((l) => l.day === day);
@@ -145,6 +151,7 @@ function TodayPage() {
         nextLabel="Nächster Tag"
       />
       <DayBadges iso={day} />
+      {day === today && <RewardHint />}
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4">
         <section aria-live="polite" className="rounded-3xl bg-card p-4 shadow-card sm:p-5">
@@ -179,7 +186,7 @@ function TodayPage() {
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <p className="px-2 pb-1 text-sm text-muted-foreground">
-                  Tägliche Aufgaben geben keine Einzelsterne: Ist Mo–So alles erledigt, gibt es am Sonntagabend {WEEK_BONUS_STARS} ⭐. Haarewaschen selber gemacht: +{HAIR_SELF_STARS} ⭐.
+                  Tägliche Aufgaben geben keine Einzelsterne: Ist Mo–So alles erledigt, gibt es am Sonntagabend {WEEK_BONUS_STARS} ⭐. Haarewaschen selber gemacht: +{HAIR_SELF_STARS} ⭐. Wer regelmässig und früh dran ist, findet ab und zu geheime Spezial-Sterne ✨. Wer {CLOSURE_LIMIT}× vergisst, den Morgen oder den Tag abzuschliessen, verliert 1 ⭐.
                 </p>
               </CollapsibleContent>
             </Collapsible>
@@ -199,6 +206,7 @@ function TodayPage() {
             </div>
           </>
         )}
+        {day === today && <ClosureCounter familyId={fam.id} />}
         {total > 0 && !comps.isPending && (
           <Button size="lg" className="h-16 w-full rounded-2xl text-xl" onClick={() => { primeSpeech(); setClosing(true); }}>
             {isSunday ? "🏁 Woche abschliessen" : "✅ Tag abschliessen"}

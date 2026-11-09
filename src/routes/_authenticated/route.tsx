@@ -11,6 +11,7 @@ import { FamilyContext } from "@/lib/family-context";
 import { LoadingState, ErrorState } from "@/components/States";
 import { StarKittenHost } from "@/components/StarKitten";
 import { WaterReminderHost } from "@/components/WaterReminder";
+import { SpecialRewardsWatcher } from "@/components/Rewards";
 
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async ({ location }) => {
@@ -61,6 +62,7 @@ function AuthedLayout() {
         </main>
         <StarKittenHost />
         <WaterReminderHost />
+        <SpecialRewardsWatcher familyId={q.data.id} />
         <nav aria-label="Hauptnavigation" className="fixed inset-x-0 bottom-0 z-40 rounded-t-[2rem] border-t-4 border-secondary bg-card/95 backdrop-blur pb-[env(safe-area-inset-bottom)]">
           <div className="mx-auto grid max-w-4xl grid-cols-4">
             {NAV.map(({ to, label, icon: Icon }) => (

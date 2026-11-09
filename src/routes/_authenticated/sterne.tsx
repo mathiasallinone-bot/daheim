@@ -46,7 +46,11 @@ const LABELS: Record<string, string> = {
   "kleider-zusammenlegen": "Kleider zusammengelegt",
   trockenfutter: "Trockenfutter aufgefüllt",
   abfall: "Abfall runtergebracht",
+  katzenklo: "Katzentoiletten geputzt",
   wochenbonus: "🏆 Wochenbonus – ganze Woche geschafft",
+  fruehaufsteher: "🌅 Frühaufsteher-Woche",
+  "hausaufgaben-bonus": "📝 Hausaufgaben schon am Montag",
+  abzug: "📋 Abzug – 5× Abschluss vergessen",
 };
 
 function StarsPage() {
@@ -74,7 +78,7 @@ function StarsPage() {
       if (r.error) throw r.error;
       const groups = new Map<string, { key: string; count: number; stars: number; days: Set<string> }>();
       for (const x of c.data) {
-        if (x.task_key === "tagesabschluss") continue;
+        if (["tagesabschluss", "morgenabschluss", "abendabschluss"].includes(x.task_key)) continue;
         if (x.created_at < resetAt) x.stars = 0;
         const g = groups.get(x.task_key) ?? { key: x.task_key, count: 0, stars: 0, days: new Set<string>() };
         g.count++; g.stars += x.stars; g.days.add(x.day);
@@ -192,7 +196,7 @@ function StarsPage() {
                       <span className="block font-semibold">{LABELS[t.key] ?? t.key}</span>
                       <span className="block text-sm text-muted-foreground">{t.count}× erledigt</span>
                     </span>
-                    <span className="font-bold text-done">{t.stars > 0 ? `+${t.stars} ⭐` : "0 ⭐"}</span>
+                    <span className={`font-bold ${t.stars < 0 ? "text-holiday" : "text-done"}`}>{t.stars > 0 ? `+${t.stars} ⭐` : t.stars < 0 ? `−${-t.stars} ⭐` : "0 ⭐"}</span>
                   </button>
                 </li>
               ))}
