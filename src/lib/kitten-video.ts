@@ -12,11 +12,30 @@ import tipAufgaben from "@/assets/tip-04-aufgaben-selbststaendig.mp4.asset.json"
 import tipPause from "@/assets/tip-05-kleine-pause.mp4.asset.json";
 import tipKontrolle from "@/assets/tip-06-alles-kontrollieren.mp4.asset.json";
 import tipStolz from "@/assets/tip-07-stolz-sein.mp4.asset.json";
+import spezialHinweis1 from "@/assets/spezial-hinweis-1.mp4.asset.json";
+import spezialHinweis2 from "@/assets/spezial-hinweis-2.mp4.asset.json";
+import extraStern from "@/assets/extra-stern.mp4.asset.json";
+import doppelstern from "@/assets/doppelstern.mp4.asset.json";
 
 
 export type KittenClip = { mp4: string; phrase: string };
 
 export const STAR_CLIP: KittenClip = { mp4: stern.url, phrase: "Gut gemacht Siana. Du hast dir einen Belohnungsstern verdient." };
+
+/* Lippensynchrone Kling-Clips (Nov. 2026) für das neue Belohnungssystem. */
+export const REWARD_HINT_CLIPS: KittenClip[] = [
+  { mp4: spezialHinweis1.url, phrase: "Psst, Siana! Ich habe geheime Sterne versteckt." },
+  { mp4: spezialHinweis2.url, phrase: "Hallo Siana! Ich habe geheime Spezial-Sterne versteckt. Findest du sie?" },
+];
+const EXTRA_STAR_CLIP: KittenClip = { mp4: extraStern.url, phrase: "Überraschung, Siana! Ein geheimer Extra-Stern!" };
+const DOUBLE_STAR_CLIP: KittenClip = { mp4: doppelstern.url, phrase: "Wow, Siana! Heute gibt es zwei Sterne!" };
+
+/** Clip für die Stern-Übergabe: geheime Extras und Doppelstern haben eigene Sätze. */
+export function starClip(key: string, stars: number): KittenClip {
+  if (key === "fruehaufsteher" || key === "hausaufgaben-bonus") return EXTRA_STAR_CLIP;
+  if (key === "buch-lesen" && stars === 2) return DOUBLE_STAR_CLIP;
+  return STAR_CLIP;
+}
 
 /** Wählt den passenden Abschluss-Clip. */
 export function kittenVideo(morning: boolean, done: boolean, opts: { schoolFree?: boolean; weekDone?: boolean } = {}): KittenClip {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dayStatus, formatCH, isRecurringDue, tasksFor, thursdayActivity, todayZurich, addDays, TASK_STARS, HAIR_SELF_STARS, WEEK_BONUS_STARS, TRASH_STARS, READING_EVERY, LAUNDRY_EVERY, milestoneStars, laundryPart, weekDaysEnding, isWeekComplete, homeworkStep, homeworkUrgent, homeworkVisible, homeworkReminder, homeworkBlocksClose, schoolEnd, schoolLessons, waterSlots, isLitterSpecial, morningDeadlineHour, morningTasks } from "./plan";
+import { dayStatus, formatCH, isRecurringDue, tasksFor, thursdayActivity, todayZurich, addDays, TASK_STARS, HAIR_SELF_STARS, WEEK_BONUS_STARS, TRASH_STARS, READING_EVERY, LAUNDRY_EVERY, milestoneStars, laundryPart, weekDaysEnding, isWeekComplete, homeworkStep, homeworkUrgent, homeworkVisible, homeworkReminder, homeworkBlocksClose, schoolEnd, schoolLessons, waterSlots, isLitterSpecial, morningDeadlineHour } from "./plan";
 
 const keys = (d: string) => tasksFor(d).map((t) => t.key);
 

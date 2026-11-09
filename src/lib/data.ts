@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { showKittenClip, showStarKitten } from "@/components/StarKitten";
 import { mondayOf, todayZurich } from "@/lib/plan";
-import { isRoutineClipTask, shouldShowRoutineClip, taskClip } from "@/lib/kitten-video";
+import { isRoutineClipTask, shouldShowRoutineClip, starClip, taskClip } from "@/lib/kitten-video";
 
 const ROUTINE_SHOWN_KEY = "daheim-kitten-routine-shown";
 
@@ -132,7 +132,7 @@ export function useToggleTask(familyId: string) {
         .select("stars")
         .single();
       if (error && error.code !== "23505") throw error;
-      if (data && data.stars > 0) showStarKitten(starReason(v.key, data.stars));
+      if (data && data.stars > 0) showStarKitten(starReason(v.key, data.stars), starClip(v.key, data.stars));
       else if (data) {
         // Hausaufgaben werden auf dem Montag der Woche gespeichert.
         const today = todayZurich();

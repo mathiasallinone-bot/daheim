@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import kitten from "@/assets/kitten.png";
 import { Button } from "@/components/ui/button";
-import { showStarKitten } from "@/components/StarKitten";
+import { showKittenClip, showStarKitten } from "@/components/StarKitten";
+import { REWARD_HINT_CLIPS, starClip } from "@/lib/kitten-video";
 import { starReason, useClosureStatus, useInvalidate, useSpecialRewards } from "@/lib/data";
 import { CLOSURE_LIMIT, todayZurich } from "@/lib/plan";
 
@@ -29,6 +30,7 @@ function writeSeen(ids: Set<string>) {
 export function RewardHint() {
   const today = todayZurich();
   const [show, setShow] = useState(false);
+  const [clip] = useState(() => REWARD_HINT_CLIPS[Math.floor(Math.random() * REWARD_HINT_CLIPS.length)]!);
   useEffect(() => {
     try {
       setShow(localStorage.getItem(HINT_KEY) !== today);
@@ -36,6 +38,15 @@ export function RewardHint() {
       setShow(true);
     }
   }, [today]);
+  // Kätzchen spricht den Hinweis einmal; wartet, falls gerade die Begrüssung läuft.
+  useEffect(() => {
+    if (!show) return;
+    let tries = 0;
+    const t = setInterval(() => {
+      if (showKittenClip(clip) || ++tries > 20) clearInterval(t);
+    }, 1500);
+    return () => clearInterval(t);
+  }, [show, clip]);
   if (!show) return null;
   const close = () => {
     try {
@@ -55,7 +66,10 @@ export function RewardHint() {
         <p className="text-sm text-muted-foreground sm:text-base">
           Wer seine Aufgaben regelmässig und früh erledigt und jeden Morgen und Abend abschliesst, kann sie entdecken.
         </p>
-        <Button size="sm" className="h-11 rounded-xl" onClick={close}>🐾 Okay, ich bin dabei!</Button>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" className="h-11 rounded-xl" onClick={close}>🐾 Okay, ich bin dabei!</Button>
+          <Button size="sm" variant="ghost" className="h-11 rounded-xl" onClick={() => showKittenClip(clip)}>▶️ Nochmals anhören</Button>
+        </div>
       </div>
     </section>
   );
@@ -105,7 +119,7 @@ export function SpecialRewardsWatcher({ familyId }: { familyId: string }) {
       });
     }
     const last = bonus.at(-1);
-    if (last) showStarKitten(starReason(last.task_key, last.stars));
+    if (last) showStarKitten(starReason(last.task_key, last.stars), starClip(last.task_key, last.stars));
   }, [specials.data]);
   return null;
 }

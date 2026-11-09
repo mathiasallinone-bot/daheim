@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { closureClips, closureSituation, pickClip, GREETING_CLIP, kittenVideo, REDEEM_CLIP, shouldGreet, shouldShowRoutineClip, STAR_CLIP, taskClip } from "./kitten-video";
+import { REWARD_HINT_CLIPS, starClip, closureClips, closureSituation, pickClip, GREETING_CLIP, kittenVideo, REDEEM_CLIP, shouldGreet, shouldShowRoutineClip, STAR_CLIP, taskClip } from "./kitten-video";
 
 describe("Kätzchen-Abschluss", () => {
   it("Morgen erledigt an Schultag: Guten Morgen", () => {
@@ -83,5 +83,20 @@ describe("Abwechslung beim Abschluss", () => {
   it("Situationen", () => {
     expect(closureSituation(true, true, { schoolFree: true })).toBe("morgen-frei");
     expect(closureSituation(false, true, { weekDone: true })).toBe("woche-fertig");
+  });
+});
+
+describe("Belohnungs-Clips (Kling, lippensynchron)", () => {
+  it("geheime Extras: eigener Extra-Stern-Clip", () => {
+    expect(starClip("fruehaufsteher", 1).mp4).toContain("extra-stern");
+    expect(starClip("hausaufgaben-bonus", 1).mp4).toContain("extra-stern");
+  });
+  it("Doppelstern nur bei 2 Sternen fürs Lesen", () => {
+    expect(starClip("buch-lesen", 2).mp4).toContain("doppelstern");
+    expect(starClip("buch-lesen", 1)).toEqual(STAR_CLIP);
+    expect(starClip("katzenklo", 6)).toEqual(STAR_CLIP);
+  });
+  it("zwei Hinweis-Clips", () => {
+    expect(REWARD_HINT_CLIPS.map((c) => c.mp4)).toEqual(["/media/spezial-hinweis-1.mp4", "/media/spezial-hinweis-2.mp4"]);
   });
 });

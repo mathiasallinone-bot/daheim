@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { GREETING_CLIP, shouldGreet } from "@/lib/kitten-video";
+import { GREETING_CLIP, shouldGreet, starClip } from "@/lib/kitten-video";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -102,7 +102,7 @@ function TodayPage() {
     mutationFn: async (key: string) => {
       const { data, error } = await supabase.from("task_completions").insert({ family_id: fam.id, day, task_key: key }).select("stars").single();
       if (error && error.code !== "23505") throw error;
-      if (data && data.stars > 0) showStarKitten(starReason(key, data.stars));
+      if (data && data.stars > 0) showStarKitten(starReason(key, data.stars), starClip(key, data.stars));
       return { created: !error, stars: data?.stars ?? 0 };
     },
     onSuccess: ({ created, stars }) => {
