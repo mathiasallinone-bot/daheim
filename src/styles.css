@@ -185,8 +185,36 @@
   translate: -50% -50%;
   animation: kitten-spark-float 1.25s ease-out forwards;
 }
+/* Tanzendes Kätzchen (Extra-Bonus) – Takt passt zur Musik (132 bpm) */
+@keyframes kitten-dance {
+  0%, 100% { transform: translateY(0) rotate(-9deg) scale(1.03, 0.97); }
+  25% { transform: translateY(-16%) rotate(0deg) scale(0.96, 1.05); }
+  50% { transform: translateY(0) rotate(9deg) scale(1.03, 0.97); }
+  75% { transform: translateY(-16%) rotate(0deg) scale(0.96, 1.05); }
+}
+.kitten-dance { animation: kitten-dance 0.909s ease-in-out infinite; transform-origin: 50% 92%; }
+@keyframes note-float {
+  0% { opacity: 0; transform: translate(0, 0) rotate(0deg) scale(0.6); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx, 30px), -46vh) rotate(var(--rot, 25deg)) scale(1.2); }
+}
+.note-float { position: absolute; bottom: 40%; animation: note-float 2.6s ease-out infinite; }
+@keyframes star-fly {
+  0% { top: 30%; left: var(--x0, 50%); opacity: 0; transform: translate(-50%, -50%) scale(0.4) rotate(0deg); }
+  12% { opacity: 1; transform: translate(-50%, -50%) scale(1.6) rotate(120deg); }
+  45% { top: 26%; transform: translate(-50%, -50%) scale(1.4) rotate(240deg); }
+  92% { opacity: 1; }
+  100% { top: 88%; left: 50%; opacity: 0; transform: translate(-50%, -50%) scale(0.7) rotate(720deg); }
+}
+.star-fly { position: absolute; top: 30%; opacity: 0; font-size: 4rem; line-height: 1; animation: star-fly 1.6s cubic-bezier(0.45, 0, 0.3, 1) both; }
+@keyframes badge-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+.badge-pop { animation: badge-pop 0.5s ease-out; }
 @media (prefers-reduced-motion: reduce) {
-  .kitten-breathe, .kitten-talk, .kitten-hop, .kitten-bubble, .paw-in, .kitten-spark { animation: none; }
+  .kitten-breathe, .kitten-talk, .kitten-hop, .kitten-bubble, .paw-in, .kitten-spark, .kitten-dance, .note-float, .badge-pop { animation: none; }
 }
 
 /* Einheitlicher, gut sichtbarer Fokusrahmen für Tastatur-Bedienung */

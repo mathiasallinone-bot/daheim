@@ -26,9 +26,10 @@ import {
   useRecurring,
   starReason,
 } from "@/lib/data";
-import { showKittenClip, showStarKitten } from "@/components/StarKitten";
+import { showDanceKitten, showKittenClip, showStarKitten } from "@/components/StarKitten";
+import { primeDanceMusic } from "@/components/DanceKitten";
 import { useFamily } from "@/lib/family-context";
-import { HAIR_SELF_STARS, LAUNDRY_EVERY, LITTER_EVERY, LITTER_SPECIAL, READING_EVERY, TRASH_STARS, CLOSURE_LIMIT, isLitterSpecial, WEEK_BONUS_STARS, addDays, formatCH, isRecurringDue, isValidISO, tasksFor, todayZurich, weekday } from "@/lib/plan";
+import { HAIR_SELF_STARS, LAUNDRY_EVERY, LITTER_EVERY, LITTER_SPECIAL, READING_EVERY, TRASH_STARS, CLOSURE_LIMIT, READING_BONUS, isLitterSpecial, isReadingBonusDay, WEEK_BONUS_STARS, addDays, formatCH, isRecurringDue, isValidISO, tasksFor, todayZurich, weekday } from "@/lib/plan";
 
 export const Route = createFileRoute("/_authenticated/")({
   validateSearch: (s: Record<string, unknown>): { d?: string } => (isValidISO(s["d"]) ? { d: s["d"] } : {}),
@@ -102,7 +103,9 @@ function TodayPage() {
     mutationFn: async (key: string) => {
       const { data, error } = await supabase.from("task_completions").insert({ family_id: fam.id, day, task_key: key }).select("stars").single();
       if (error && error.code !== "23505") throw error;
-      if (data && data.stars > 0) showStarKitten(starReason(key, data.stars), starClip(key, data.stars));
+      if (data && key === "buch-lesen" && data.stars >= READING_BONUS.stars && isReadingBonusDay(day, todayZurich()))
+        showDanceKitten(data.stars, `🎉 Extra-Bonus fürs Lesen! Hier kommen ${data.stars} Sterne für dich, Siana!`);
+      else if (data && data.stars > 0) showStarKitten(starReason(key, data.stars), starClip(key, data.stars));
       return { created: !error, stars: data?.stars ?? 0 };
     },
     onSuccess: ({ created, stars }) => {
@@ -127,7 +130,7 @@ function TodayPage() {
   const total = tasks.length + openLaundry.length;
   const EXTRAS = [
     { key: "trockenfutter", label: "🐱 Trockenfutter aufgefüllt", info: "bei Bedarf, max. 1× pro Tag" },
-    { key: "buch-lesen", label: "📖 Buch gelesen", info: `max. 1× pro Tag · jedes ${READING_EVERY}. Mal +1 ⭐ – manchmal mehr ✨` },
+    { key: "buch-lesen", label: "📖 Buch gelesen", info: isReadingBonusDay(day, today) ? "🎁 Heute mit Überraschung!" : `max. 1× pro Tag · jedes ${READING_EVERY}. Mal +1 ⭐ – manchmal mehr ✨` },
     {
       key: "katzenklo",
       label: "🧹 Katzentoiletten geputzt",
@@ -242,7 +245,7 @@ function TodayPage() {
               <Button key={x.key} size="lg" variant={c ? "outline" : "secondary"} aria-pressed={!!c}
                 className="h-auto min-h-20 flex-col gap-1 whitespace-normal rounded-2xl px-3 text-base sm:text-lg"
                 disabled={extraMut.isPending || undoMut.isPending || comps.isPending || (!!c && day !== today)}
-                onClick={() => c ? askUndo(x.label.slice(x.label.indexOf(" ") + 1), c.stars, () => undoMut.mutate({ kind: "completion", id: c.id })) : extraMut.mutate(x.key)}>
+                onClick={() => { if (!c && x.key === "buch-lesen" && isReadingBonusDay(day, today)) primeDanceMusic(); return c ? askUndo(x.label.slice(x.label.indexOf(" ") + 1), c.stars, () => undoMut.mutate({ kind: "completion", id: c.id })) : extraMut.mutate(x.key); }}>
                 <span>{x.label}</span>
                 <span className="text-xs font-normal opacity-80 sm:text-sm">{c ? `✓ Am ${formatCH(day)} erledigt${day === today ? " · antippen zum Zurücknehmen" : ""}` : x.info}</span>
               </Button>

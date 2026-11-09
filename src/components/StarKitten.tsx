@@ -3,9 +3,10 @@ import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { STAR_PHRASE } from "@/lib/kitten";
 import { STAR_CLIP, type KittenClip } from "@/lib/kitten-video";
+import { DanceKitten } from "@/components/DanceKitten";
 
 const SOUND_KEY = "daheim-kitten-sound";
-type Show = { kind: "star"; reason: string; clip: KittenClip } | { kind: "tip"; clip: KittenClip };
+type Show = { kind: "star"; reason: string; clip: KittenClip } | { kind: "tip"; clip: KittenClip } | { kind: "dance"; stars: number; title: string };
 type Listener = (s: Show | null) => void;
 const listeners = new Set<Listener>();
 let current: Show | null = null;
@@ -15,6 +16,11 @@ const emit = (s: Show | null) => { current = s; listeners.forEach((l) => l(s)); 
 /** Zeigt kurz das Kätzchen, das einen Belohnungsstern überbringt (hat Vorrang). */
 export function showStarKitten(reason: string, clip: KittenClip = STAR_CLIP) {
   emit({ kind: "star", reason, clip });
+}
+
+/** Tanzendes Kätzchen mit Musik, das Siana die Sterne schickt (Extra-Bonus, hat Vorrang). */
+export function showDanceKitten(stars: number, title: string) {
+  emit({ kind: "dance", stars, title });
 }
 
 /** Kurzer Zusatz-Clip; wird übersprungen, wenn Stern- oder Abschluss-Clip läuft. */
@@ -43,12 +49,13 @@ export function StarKittenHost() {
   }, []);
   const close = () => emit(null);
   useEffect(() => {
-    if (!show) return;
+    if (!show || show.kind === "dance") return;
     const t = setTimeout(close, show.kind === "star" ? 9000 : 8000);
     return () => clearTimeout(t);
   }, [show]);
 
   if (!show || typeof document === "undefined") return null;
+  if (show.kind === "dance") return <DanceKitten stars={show.stars} title={show.title} onClose={close} />;
   if (show.kind === "tip") return createPortal(
     <div role="dialog" aria-modal="true" aria-label="Kätzchen" onClick={close}
       className="fixed inset-0 z-[105] flex h-dvh w-full items-center justify-center bg-star-soft p-4">

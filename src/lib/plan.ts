@@ -108,6 +108,9 @@ export const TRASH_STARS = 1;
 export const LITTER_EVERY = 5;
 export const LITTER_SPECIAL = { from: "2026-11-09", to: "2026-11-15", stars: 6 } as const;
 export const isLitterSpecial = (iso: string) => iso >= LITTER_SPECIAL.from && iso <= LITTER_SPECIAL.to;
+/** Extra-Bonus fürs Buchlesen an einzelnen Tagen (muss zu public.special_day_bonus passen). */
+export const READING_BONUS = { day: "2026-11-09", stars: 2 } as const;
+export const isReadingBonusDay = (iso: string, today: string) => iso === READING_BONUS.day && today === READING_BONUS.day;
 /** Vergessene Morgen- bzw. Tagesabschlüsse bis zum Abzug von 1 Stern. */
 export const CLOSURE_LIMIT = 5;
 export const FOOD_STARS = 0;
