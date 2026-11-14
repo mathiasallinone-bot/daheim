@@ -71,7 +71,47 @@ export async function enableWaterAlarm(familyId: string): Promise<PushResult> {
     _auth: j.keys.auth,
   });
   if (error) throw error;
+  await supabase.rpc("set_push_device", { _endpoint: j.endpoint, _device: deviceLabel() });
   return { push: true };
+}
+
+/** Kurzer Gerätename für die Liste «Benachrichtigungen gehen an». */
+export function deviceLabel(ua: string = typeof navigator === "undefined" ? "" : navigator.userAgent,
+  touch: number = typeof navigator === "undefined" ? 0 : navigator.maxTouchPoints): string {
+  if (/iPad/.test(ua) || (/Macintosh/.test(ua) && touch > 1)) return "iPad";
+  if (/iPhone|iPod/.test(ua)) return "iPhone";
+  if (/Android/.test(ua)) return /Mobile/.test(ua) ? "Android-Handy" : "Android-Tablet";
+  if (/Macintosh/.test(ua)) return "Mac";
+  if (/Windows/.test(ua)) return "Windows-PC";
+  return "Gerät";
+}
+
+export type PushStatus = "ok" | "ios-browser" | "unsupported" | "denied" | "ask" | "no-sub";
+
+/** Warum dieses Gerät (k)eine Benachrichtigung bekommt. */
+export async function pushStatus(): Promise<PushStatus> {
+  if (needsHomeScreen()) return "ios-browser";
+  if (!pushSupported()) return "unsupported";
+  if (Notification.permission === "denied") return "denied";
+  if (Notification.permission !== "granted") return "ask";
+  const reg = await navigator.serviceWorker.getRegistration();
+  return (await reg?.pushManager.getSubscription()) ? "ok" : "no-sub";
+}
+
+/** Beim App-Start: Anmeldung still erneuern (Adresse kann sich ändern, z. B. bei Apple). */
+export async function syncPush(familyId: string): Promise<void> {
+  if (!waterOnThisDevice() || !pushSupported() || needsHomeScreen() || Notification.permission !== "granted") return;
+  await enableWaterAlarm(familyId);
+}
+
+/** Kennung dieses Geräts wie in public.push_devices (SHA-256 der Adresse). */
+export async function thisDeviceId(): Promise<string | null> {
+  if (!pushSupported() || !crypto?.subtle) return null;
+  const reg = await navigator.serviceWorker.getRegistration();
+  const sub = await reg?.pushManager.getSubscription();
+  if (!sub) return null;
+  const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(sub.endpoint));
+  return [...new Uint8Array(h)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 export async function disableWaterAlarm() {

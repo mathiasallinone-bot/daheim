@@ -46,6 +46,7 @@ async function send(targets: Target[]) {
     try {
       await webpush.sendNotification({ endpoint: t.endpoint, keys: { p256dh: t.p256dh, auth: t.auth } }, payload, { TTL: 3600, urgency: "high" });
       sent++;
+      await sql`update public.push_subscriptions set last_sent_at = now(), last_error = null where endpoint = ${t.endpoint}`;
     } catch (e) {
       const code = (e as { statusCode?: number }).statusCode;
       if (code === 404 || code === 410) {
@@ -54,6 +55,7 @@ async function send(targets: Target[]) {
       } else {
         failed++;
         console.error("push failed", code, (e as Error).message);
+        await sql`update public.push_subscriptions set last_error = ${String(code ?? "Fehler")} where endpoint = ${t.endpoint}`;
       }
     }
   }

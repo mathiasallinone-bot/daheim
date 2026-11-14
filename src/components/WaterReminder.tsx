@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import kitten from "@/assets/kitten.png";
@@ -8,7 +10,8 @@ import { friendlyError, useAnswerWater, useWaterChecks } from "@/lib/data";
 import { useFamily } from "@/lib/family-context";
 import { schoolEnd, todayZurich, waterSlots, WATER_TEXT, type WaterSlot } from "@/lib/plan";
 import {
-  disableWaterAlarm, enableWaterAlarm, needsHomeScreen, pushActive, pushSupported, sendTestPush, waterOnThisDevice,
+  disableWaterAlarm, enableWaterAlarm, needsHomeScreen, pushStatus, pushSupported, sendTestPush, syncPush, thisDeviceId,
+  waterOnThisDevice, type PushStatus,
 } from "@/lib/push";
 
 /** Stunde und Minute in Zürich. */
@@ -76,6 +79,9 @@ export function WaterReminderHost() {
   const checks = useWaterChecks(fam.id, today);
   const answer = useAnswerWater(fam.id);
   const audio = useRef<HTMLAudioElement | null>(null);
+  useEffect(() => {
+    void syncPush(fam.id).catch(() => {});
+  }, [fam.id]);
   // Vorschau: Knopf «Kätzchen zeigen» oder Antippen der Test-Benachrichtigung (?wasser=0)
   const [demo, setDemo] = useState(false);
   useEffect(() => {
@@ -175,13 +181,16 @@ export function WaterCard({ day }: { day: string }) {
   const checks = useWaterChecks(fam.id, day);
   const answer = useAnswerWater(fam.id);
   const on = useDeviceOn();
-  const [push, setPush] = useState<boolean | null>(null);
+  const [push, setPush] = useState<PushStatus | null>(null);
+  const [myId, setMyId] = useState<string | null>(null);
+  const devices = usePushDevices(fam.id);
   const [busy, setBusy] = useState(false);
   const [askUndo, undoDialog] = useConfirmUndo();
   const { hour } = zurichClock();
 
   useEffect(() => {
-    void pushActive().then(setPush);
+    void pushStatus().then(setPush);
+    void thisDeviceId().then(setMyId);
   }, [on]);
 
   const done = new Map((checks.data ?? []).map((c) => [c.hour, c]));
@@ -198,7 +207,25 @@ export function WaterCard({ day }: { day: string }) {
         if (r.push) toast.success("Wasser-Wecker eingeschaltet – mit Benachrichtigungen 🔔");
         else toast.info("Wasser-Wecker eingeschaltet (nur bei offener App)", { description: r.reason });
       }
-      setPush(await pushActive());
+      setPush(await pushStatus());
+      setMyId(await thisDeviceId());
+      void devices.refetch();
+    } catch (e) {
+      toast.error("Hat nicht geklappt", { description: friendlyError(e) });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function enableAgain() {
+    setBusy(true);
+    try {
+      const r = await enableWaterAlarm(fam.id);
+      if (r.push) toast.success("Benachrichtigungen eingeschaltet 🔔 – tippe «Test senden» zum Prüfen");
+      else toast.info("Noch keine Benachrichtigungen", { description: r.reason });
+      setPush(await pushStatus());
+      setMyId(await thisDeviceId());
+      void devices.refetch();
     } catch (e) {
       toast.error("Hat nicht geklappt", { description: friendlyError(e) });
     } finally {
@@ -252,11 +279,11 @@ export function WaterCard({ day }: { day: string }) {
         </ul>
       )}
       <div className="flex flex-wrap items-center gap-2 border-t border-swim/20 pt-3 text-sm">
-        <span className="font-semibold">🔔 Wecker auf diesem Gerät: {on ? (push ? "an (mit Benachrichtigung)" : "an (bei offener App)") : "aus"}</span>
+        <span className="font-semibold">🔔 Wecker auf diesem Gerät: {on ? (push === "ok" ? "an (mit Benachrichtigung)" : "an (nur bei offener App)") : "aus"}</span>
         <Button size="sm" variant={on ? "outline" : "default"} className="h-11 rounded-xl" disabled={busy} onClick={() => void toggle()}>
           {on ? "Ausschalten" : "Einschalten"}
         </Button>
-        {on && push && (
+        {on && push === "ok" && (
           <Button size="sm" variant="ghost" className="h-11 rounded-xl" disabled={busy} onClick={() => void test()}>
             Test senden
           </Button>
@@ -265,6 +292,8 @@ export function WaterCard({ day }: { day: string }) {
           🐱 Kätzchen zeigen
         </Button>
       </div>
+      {on && push && push !== "ok" && <PushHelp status={push} busy={busy} onEnable={() => void enableAgain()} />}
+      <DeviceList devices={devices.data} myId={myId} />
       {!on && (pushSupported() || needsHomeScreen()) && (
         <p className="text-xs text-muted-foreground">
           Auf Sianas Gerät einschalten. {needsHomeScreen() ? "iPhone/iPad: zuerst über Teilen → «Zum Home-Bildschirm» hinzufügen, dann gibt es Benachrichtigungen auch bei geschlossener App." : "Dann klingelt das Kätzchen auch, wenn die App geschlossen ist."}
@@ -272,5 +301,72 @@ export function WaterCard({ day }: { day: string }) {
       )}
       {undoDialog}
     </section>
+  );
+}
+
+type PushDevice = { id: string; device: string | null; created_at: string; last_sent_at: string | null; last_error: string | null };
+
+function usePushDevices(familyId: string) {
+  return useQuery({
+    queryKey: ["push-devices", familyId],
+    queryFn: async (): Promise<PushDevice[]> => {
+      const { data, error } = await supabase.rpc("push_devices", { _family_id: familyId });
+      if (error) throw error;
+      return (data ?? []) as PushDevice[];
+    },
+    staleTime: 60_000,
+  });
+}
+
+const fmtSent = (iso: string) =>
+  new Intl.DateTimeFormat("de-CH", { timeZone: "Europe/Zurich", weekday: "short", day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(iso));
+
+/** Welche Geräte Benachrichtigungen bekommen (für Eltern zur Kontrolle). */
+function DeviceList({ devices, myId }: { devices: PushDevice[] | undefined; myId: string | null }) {
+  if (!devices) return null;
+  return (
+    <div className="text-sm">
+      <p className="font-semibold">📱 Benachrichtigungen gehen an:</p>
+      {devices.length === 0 ? (
+        <p className="text-muted-foreground">noch kein Gerät</p>
+      ) : (
+        <ul className="mt-1 space-y-1">
+          {devices.map((d) => (
+            <li key={d.id} className="flex flex-wrap gap-x-2">
+              <span className="font-medium">{d.device ?? "Gerät"}{d.id === myId ? " (dieses Gerät)" : ""}</span>
+              <span className="text-muted-foreground">
+                {d.last_error ? `⚠️ zuletzt Fehler (${d.last_error})` : d.last_sent_at ? `zuletzt gesendet ${fmtSent(d.last_sent_at)}` : `angemeldet ${fmtSent(d.created_at)}`}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+const HELP: Record<Exclude<PushStatus, "ok">, { text: string; button: boolean }> = {
+  "ios-browser": {
+    text: "Daheim läuft hier im Browser und nicht als App – so erlaubt Apple keine Benachrichtigungen. Das passiert auch, wenn das Symbol auf dem Home-Bildschirm noch von früher stammt. So geht es: 1. Das Daheim-Symbol auf dem Home-Bildschirm löschen. 2. In Safari daheim-five.vercel.app öffnen → Teilen-Knopf → «Zum Home-Bildschirm». 3. Daheim über das neue Symbol öffnen, anmelden und hier «Einschalten» tippen.",
+    button: false,
+  },
+  unsupported: { text: "Dieser Browser kann keine Benachrichtigungen empfangen. Auf iPad/iPhone braucht es iPadOS/iOS 16.4 oder neuer.", button: false },
+  denied: {
+    text: "Benachrichtigungen sind auf diesem Gerät blockiert. iPad/iPhone: Einstellungen → Mitteilungen → Daheim → «Mitteilungen erlauben» (Ton und Banner einschalten). Android: Einstellungen → Apps → Daheim/Chrome → Benachrichtigungen. Danach hier tippen:",
+    button: true,
+  },
+  ask: { text: "Benachrichtigungen sind auf diesem Gerät noch nicht erlaubt.", button: true },
+  "no-sub": { text: "Dieses Gerät ist für Benachrichtigungen nicht (mehr) angemeldet.", button: true },
+};
+
+function PushHelp({ status, busy, onEnable }: { status: Exclude<PushStatus, "ok">; busy: boolean; onEnable: () => void }) {
+  const h = HELP[status];
+  return (
+    <div role="status" className="space-y-2 rounded-2xl bg-holiday-soft p-3 text-sm">
+      <p><span className="font-semibold">⚠️ Keine Benachrichtigungen bei geschlossener App.</span> {h.text}</p>
+      {h.button && (
+        <Button size="sm" className="h-11 rounded-xl" disabled={busy} onClick={onEnable}>🔔 Benachrichtigungen einschalten</Button>
+      )}
+    </div>
   );
 }
